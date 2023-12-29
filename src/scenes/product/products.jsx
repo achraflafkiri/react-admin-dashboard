@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import {
   Box,
@@ -11,26 +11,43 @@ import {
   Paper,
   Button,
 } from "@mui/material";
+import { getAllProducts } from "../../api/functions/products";
+import { getAllCategories } from "../../api/functions/categories";
 
-const products = () => {
-  // Sample product data
-  const productData = [
-    {
-      title: "Product 1",
-      description: "Description 1",
-      price: 50,
-      category: "salon",
-      imageUrl: "https://images.unsplash.com/photo-1586702107743-",
-    },
-    {
-      title: "Product 2",
-      description: "Description 2",
-      price: 75,
-      category: "lamp",
-      imageUrl: "https://images.unsplash.com/photo-1586702107743-",
-    },
-    // Add more products as needed
-  ];
+const Products = () => {
+  const [productData, setProductData] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const prods = await getAllProducts();
+        if (prods.data) {
+          setProductData(prods.data.data.products);
+          // console.log(prods.data.data.products);
+        }
+        const cats = await getAllCategories();
+        if (cats.data) {
+          console.log(cats.data.data.categories);
+          setCategoriesList(cats.data.data.categories);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const bufferToDataURL = (buffer) => {
+    const base64 = btoa(
+      new Uint8Array(buffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        ""
+      )
+    );
+    return `data:image/jpeg;base64,${base64}`;
+  };
 
   return (
     <Box m="20px">
@@ -43,33 +60,40 @@ const products = () => {
               <TableCell>Title</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Price</TableCell>
+              <TableCell>Image</TableCell>
               <TableCell>Category</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {productData.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell>{product.title}</TableCell>
-                <TableCell>{product.description}</TableCell>
-                <TableCell>${product.price}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>
-                  <img
-                    src={product.imageUrl}
-                    alt={`Product ${index}`}
-                    style={{ width: 50, height: 50, objectFit: "cover" }}
-                  />
-                </TableCell>
-                <TableCell>
-                  {/* Add any action buttons or links here */}
-                  <Button variant="outlined" color="primary">
-                    View Details
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {productData &&
+              productData.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{product.titleEN}</TableCell>
+                  <TableCell>{product.descriptionEN}</TableCell>
+                  <TableCell>${product.price}</TableCell>
+                  {categoriesList &&
+                    categoriesList.map((item, index) => (
+                      <TableCell>{item.name}</TableCell>
+                    ))}
+                  <TableCell>
+                    {product.image && (
+                      <img
+                        src={bufferToDataURL(product.image.data)}
+                        alt={`Product ${index}`}
+                        style={{ width: 50, height: 50, objectFit: "cover" }}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {/* Add any action buttons or links here */}
+                    <Button variant="outlined" color="primary">
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -77,4 +101,4 @@ const products = () => {
   );
 };
 
-export default products;
+export default Products;
