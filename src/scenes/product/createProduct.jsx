@@ -11,13 +11,43 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../components/Header";
+import { createProduct } from "../../api/functions/products";
+import { getAllCategories } from "../../api/functions/categories";
+import { useEffect, useState } from "react";
 
 const CreateProduct = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
 
-  const handleFormSubmit = (values) => {
-    console.log(values);
-    // You can handle the image upload here, e.g., send it to a server.
+  const [categoriesData, setCategoriesData] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesList = await getAllCategories();
+
+        if (categoriesList.data) {
+          setCategoriesData(categoriesList.data.data.categories);
+          // console.log(categoriesList.data.data.categories);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleFormSubmit = async (values) => {
+    console.log("values => ", values);
+
+    try {
+      const res = await createProduct(values);
+
+      if (res.data) {
+        console.log("res data => ", res.data);
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+    }
   };
 
   return (
@@ -36,7 +66,7 @@ const CreateProduct = () => {
           handleBlur,
           handleChange,
           handleSubmit,
-          setFieldValue, // Add setFieldValue to update the form field values
+          setFieldValue,
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
@@ -100,10 +130,16 @@ const CreateProduct = () => {
                   name="category"
                   error={!!touched.category && !!errors.category}
                 >
-                  <MenuItem value="salon">Salon</MenuItem>
+                  {/* <MenuItem value="salon">Salon</MenuItem>
                   <MenuItem value="lamp">Lamp</MenuItem>
-                  <MenuItem value="livingRoom">Living Room</MenuItem>
-                  <MenuItem value="chair">Chair</MenuItem>
+                  <MenuItem value="livingRoom">Living Room</MenuItem> */}
+
+                  {categoriesData &&
+                    categoriesData.map((item, index) => (
+                      <MenuItem value={item.name} key={index}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
 
@@ -115,7 +151,7 @@ const CreateProduct = () => {
                 type="file"
                 onChange={(event) => {
                   setFieldValue(
-                    "imageUrl",
+                    "image",
                     URL.createObjectURL(event.target.files[0])
                   );
                 }}
@@ -125,9 +161,9 @@ const CreateProduct = () => {
                   Upload Image
                 </Button>
               </label>
-              {values.imageUrl && (
+              {values.image && (
                 <img
-                  src={values.imageUrl}
+                  src={values.image}
                   alt="Preview"
                   style={{ maxWidth: "100%", marginTop: "10px" }}
                 />
@@ -163,8 +199,8 @@ const initialValues = {
   title: "",
   description: "",
   price: 0,
-  category: "salon",
-  imageUrl: "https://images.unsplash.com/photo-1586702107743-",
+  category: "",
+  image: "",
 };
 
 export default CreateProduct;

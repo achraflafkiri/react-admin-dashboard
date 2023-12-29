@@ -16,7 +16,6 @@ import { getAllCategories } from "../../api/functions/categories";
 
 const Products = () => {
   const [productData, setProductData] = useState([]);
-  const [categoriesList, setCategoriesList] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,12 +23,6 @@ const Products = () => {
         const prods = await getAllProducts();
         if (prods.data) {
           setProductData(prods.data.data.products);
-          // console.log(prods.data.data.products);
-        }
-        const cats = await getAllCategories();
-        if (cats.data) {
-          console.log(cats.data.data.categories);
-          setCategoriesList(cats.data.data.categories);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -60,7 +53,6 @@ const Products = () => {
               <TableCell>Title</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Image</TableCell>
               <TableCell>Category</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Action</TableCell>
@@ -73,10 +65,7 @@ const Products = () => {
                   <TableCell>{product.titleEN}</TableCell>
                   <TableCell>{product.descriptionEN}</TableCell>
                   <TableCell>${product.price}</TableCell>
-                  {categoriesList &&
-                    categoriesList.map((item, index) => (
-                      <TableCell>{item.name}</TableCell>
-                    ))}
+                  <TableCell>{product.categoryId.name}</TableCell>
                   <TableCell>
                     {product.image && (
                       <img
